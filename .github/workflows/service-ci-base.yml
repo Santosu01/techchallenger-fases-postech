@@ -335,4 +335,47 @@ jobs:
       - name: ECR push skipped message
         if: ${{ !(env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCOUNT_ID != '') }}
         run: echo "AWS secrets not configured yet. Image push skipped."
-# touch 2026-05-13: alteracao minima para disparar os 5 workflows que referenciam este arquivo nos paths (push em main).
+
+  update_gitops:
+    name: Update GitOps - ${{ inputs.service_name }}
+    runs-on: ubuntu-latest
+    needs: [push_ecr, container_build]
+    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.AWS_REGION != '' && secrets.AWS_ACCOUNT_ID != '' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Bump image tag in GitOps manifest
+        env:
+          IMAGE_NAME: ${{ inputs.image_name }}
+          IMAGE_TAG: ${{ needs.container_build.outputs.image_tag }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          DEPLOYMENT="gitops/apps/${IMAGE_NAME}/deployment.yaml"
+          if [[ ! -f "$DEPLOYMENT" ]]; then
+            echo "GitOps manifest not found: $DEPLOYMENT"
+            exit 1
+          fi
+          ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}"
+          sed -i "s|\([[:space:]]*image:\).*${IMAGE_NAME}:.*|\1 ${ECR_URI}:${IMAGE_TAG}|" "$DEPLOYMENT"
+
+      - name: Commit and push GitOps change
+        env:
+          IMAGE_NAME: ${{ inputs.image_name }}
+          IMAGE_TAG: ${{ needs.container_build.outputs.image_tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "gitops/apps/${IMAGE_NAME}/deployment.yaml"
+          if git diff --staged --quiet; then
+            echo "Image tag already up to date in GitOps."
+            exit 0
+          fi
+          git commit -m "gitops: bump ${IMAGE_NAME} image to ${IMAGE_TAG}"
+          git push origin main

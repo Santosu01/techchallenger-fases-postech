@@ -71,6 +71,17 @@ jobs:
             exit 1
           fi
 
+          for LABEL_ARN in "Cluster:${CLUSTER_ARN}" "Node:${NODE_ARN}"; do
+            LABEL="${LABEL_ARN%%:*}"
+            ARN="${LABEL_ARN#*:}"
+            ROLE_NAME="${ARN#*role/}"
+            if ! aws iam get-role --role-name "$ROLE_NAME" --query Role.Arn --output text >/dev/null 2>&1; then
+              echo "::error::Role IAM invalida ou inexistente (${LABEL}): copie o ARN COMPLETO do console IAM (Roles > LabEks* > ARN). Tamanho atual: ${#ARN} chars."
+              exit 1
+            fi
+            echo "OK: role ${LABEL} existe (${ROLE_NAME})"
+          done
+
           echo "OK: conta e roles EKS alinhadas (${CALLER_ACCOUNT})."
 
       - name: Terraform init

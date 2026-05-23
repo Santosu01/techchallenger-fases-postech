@@ -94,9 +94,9 @@ Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
 ---
 
 ## Epico 3 - CD + GitOps (ArgoCD)
-**Status geral:** Em andamento (GitOps + bootstrap documentados; Argo CD e CI→Git pendentes)
+**Status geral:** Em andamento (GitOps + CI→Git prontos; instalar Argo CD no cluster pendente)
 
-**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
+**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **Argo CD:** `docs/scripts/linux/install-argocd.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
 
 ### Requisitos obrigatorios
 - [x] Repositorio (ou pasta) GitOps definido com manifestos/Helm (`gitops/`, ver `gitops/README.md`)
@@ -104,10 +104,10 @@ Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
 - [x] ConfigMap alinhavel apos cada `terraform apply` (script sync + `sslmode=require` + DB names Terraform)
 - [x] `aws-credentials` fora do Git (`gitops/cluster/app-secrets.yaml` apenas; credenciais AWS via script)
 - [x] Roteiro de sessao efemera documentado (subir → gravar → destroy)
-- [ ] ArgoCD instalado no EKS
-- [ ] ArgoCD configurado para os 5 microsservicos (+ cluster compartilhado)
-- [ ] CI atualizando automaticamente a tag da imagem no repositorio GitOps
-- [ ] ArgoCD monitorando repositório GitOps e sincronizando automaticamente
+- [x] Manifestos Argo CD no Git (`gitops/argocd/app-project.yaml` + 6 Applications)
+- [x] CI atualizando automaticamente a tag da imagem no repositorio GitOps (`update_gitops` em `service-ci-base.yml`)
+- [ ] ArgoCD instalado no EKS (`docs/scripts/linux/install-argocd.sh`)
+- [ ] ArgoCD monitorando repositorio GitOps e sincronizando automaticamente
 - [ ] Sync ponta a ponta comprovado na interface do ArgoCD
 
 ### O que ja foi aprendido / corrigido (referencia)

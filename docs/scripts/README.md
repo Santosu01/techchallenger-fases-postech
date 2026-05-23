@@ -30,6 +30,7 @@ scripts/
 │   ├── test-api.sh                           # Testar todos os serviços
 │   ├── deploy-full.sh                        # Deploy completo (tudo em um!)
 │   ├── bootstrap-epico3.sh                   # Bootstrap GitOps apos terraform apply (Epico 3)
+│   ├── install-argocd.sh                     # Instala Argo CD + Applications (Epico 3)
 │   └── cleanup-k8s.sh                        # Limpeza de recursos
 └── README.md                                 # Este arquivo
 ```

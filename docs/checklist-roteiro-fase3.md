@@ -92,8 +92,9 @@ Checklist consolidado a partir de:
 
 ### Fechar epico (pendente)
 
-- [ ] Instalar ArgoCD no EKS
-- [ ] Configurar Applications para cluster + 5 servicos
+- [ ] Push `gitops/argocd/` para branch `main` no GitHub
+- [ ] Rodar `./docs/scripts/linux/install-argocd.sh`
+- [ ] Validar 6 Applications Synced na UI
 - [ ] Habilitar autosync (prune/self-heal conforme politica)
 - [ ] Integrar CI para atualizar tag no GitOps (commit em `main`)
 - [ ] Validar sync automatico ponta a ponta (UI Argo CD)

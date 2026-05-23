@@ -72,21 +72,26 @@ chmod +x docs/scripts/linux/bootstrap-epico3.sh
 
 O script: `update-kubeconfig` → regenera ConfigMap → aplica `gitops/cluster` e `gitops/apps` → `update-aws-credentials.sh` → valida pods.
 
-### Fase D — Argo CD (Epico 3 — pendente de fechar checklist)
+### Fase D — Argo CD (`gitops/argocd/`)
 
-8. Instalar Argo CD (uma vez por sessao de cluster):
+8. **Push** para `main` no GitHub: pasta `gitops/argocd/` + demais `gitops/` (Argo le o repo remoto).
+
+9. Instalar Argo CD + Applications:
 
 ```bash
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl wait -n argocd --for=condition=available deployment/argocd-server --timeout=300s
+export RDS_MASTER_PASSWORD='senha_tfvars'
+export ECR_IMAGE_TAG='tag_no_ecr'
+chmod +x docs/scripts/linux/install-argocd.sh
+./docs/scripts/linux/install-argocd.sh
 ```
 
-9. UI: `kubectl port-forward svc/argocd-server -n argocd 8080:443` → `https://localhost:8080` (user `admin`, senha em `argocd-initial-admin-secret`).
+Detalhes: [../gitops/argocd/README.md](../gitops/argocd/README.md).
 
-10. Criar `Application`(s) apontando para `gitops/cluster` e cada `gitops/apps/<servico>` (manifests em `gitops/argocd/` quando adicionados ao repo).
+10. UI: `kubectl port-forward svc/argocd-server -n argocd 8080:443` → `https://localhost:8080` (user `admin`).
 
-11. **Autosync** habilitado; **nao** versionar `aws-credentials` no Git (aplicar via script apos sync do cluster).
+11. Validar **6 apps** na UI: `togglemaster-cluster` + 5 microsservicos — **Synced/Healthy**.
+
+12. `./docs/scripts/linux/update-aws-credentials.sh` (evaluation/analytics).
 
 ### Fase E — Demonstracao CI → GitOps → Argo
 

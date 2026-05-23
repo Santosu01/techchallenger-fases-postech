@@ -65,6 +65,6 @@ Variaveis opcionais: `PROJECT_NAME`, `ENVIRONMENT`, `AWS_REGION`, `SQS_QUEUE_NAM
 
 ---
 
-## Argo CD (Epico 3 — em implementacao)
+## Argo CD (Epico 3)
 
-Pasta `gitops/argocd/` reservada para `Application` manifests. Instalacao e sync: ver [epico3-gitops-operacao.md](../docs/epico3-gitops-operacao.md).
+Manifests em `gitops/argocd/` + script `docs/scripts/linux/install-argocd.sh`. Ver [argocd/README.md](argocd/README.md) e [epico3-gitops-operacao.md](../docs/epico3-gitops-operacao.md).
