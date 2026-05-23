@@ -379,3 +379,4 @@ jobs:
           fi
           git commit -m "gitops: bump ${IMAGE_NAME} image to ${IMAGE_TAG}"
           git push origin main
+# touch 2026-05-23: dispara CI dos 5 servicos (nova tag ECR + update_gitops).
