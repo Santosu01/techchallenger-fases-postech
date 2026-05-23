@@ -124,7 +124,8 @@ Checklist consolidado a partir de:
 
 ## 6) Checklist de demonstracao (roteiro de video)
 
-**Roteiro completo (falas, tempos, telas):** [roteiro-gravacao-video-fase3.md](roteiro-gravacao-video-fase3.md)
+**Roteiro completo (falas, tempos, telas):** [roteiro-gravacao-video-fase3.md](roteiro-gravacao-video-fase3.md)  
+**Somente Epico 3 (~5 min):** [roteiro-gravacao-epico3-5min.md](roteiro-gravacao-epico3-5min.md)
 
 Ordem resumida (~20 min):
 
