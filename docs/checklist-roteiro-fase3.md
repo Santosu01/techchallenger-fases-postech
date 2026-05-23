@@ -124,7 +124,9 @@ Checklist consolidado a partir de:
 
 ## 6) Checklist de demonstracao (roteiro de video)
 
-Ordem sugerida para gravacao (~20 min):
+**Roteiro completo (falas, tempos, telas):** [roteiro-gravacao-video-fase3.md](roteiro-gravacao-video-fase3.md)
+
+Ordem resumida (~20 min):
 
 - [ ] (Opcional) `docker-compose` local
 - [ ] `terraform plan` / apply ou recursos na console
