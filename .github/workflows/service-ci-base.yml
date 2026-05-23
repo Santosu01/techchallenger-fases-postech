@@ -340,22 +340,32 @@ jobs:
     name: Update GitOps - ${{ inputs.service_name }}
     runs-on: ubuntu-latest
     needs: [push_ecr, container_build]
-    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' && secrets.AWS_REGION != '' && secrets.AWS_ACCOUNT_ID != '' }}
     permissions:
       contents: write
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
     steps:
+      - name: GitOps update skipped message
+        if: ${{ !(env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCOUNT_ID != '') }}
+        run: echo "AWS secrets not configured yet. GitOps update skipped."
+
       - name: Checkout main
+        if: ${{ env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCOUNT_ID != '' }}
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
       - name: Bump image tag in GitOps manifest
+        if: ${{ env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCOUNT_ID != '' }}
         env:
           IMAGE_NAME: ${{ inputs.image_name }}
           IMAGE_TAG: ${{ needs.container_build.outputs.image_tag }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
         run: |
           DEPLOYMENT="gitops/apps/${IMAGE_NAME}/deployment.yaml"
           if [[ ! -f "$DEPLOYMENT" ]]; then
@@ -366,6 +376,7 @@ jobs:
           sed -i "s|\([[:space:]]*image:\).*${IMAGE_NAME}:.*|\1 ${ECR_URI}:${IMAGE_TAG}|" "$DEPLOYMENT"
 
       - name: Commit and push GitOps change
+        if: ${{ env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCOUNT_ID != '' }}
         env:
           IMAGE_NAME: ${{ inputs.image_name }}
           IMAGE_TAG: ${{ needs.container_build.outputs.image_tag }}
@@ -379,4 +390,4 @@ jobs:
           fi
           git commit -m "gitops: bump ${IMAGE_NAME} image to ${IMAGE_TAG}"
           git push origin main
-# touch 2026-05-23: dispara CI dos 5 servicos (nova tag ECR + update_gitops).
+# touch 2026-05-23: fix update_gitops if (secrets nao permitido no job if em workflow_call).
