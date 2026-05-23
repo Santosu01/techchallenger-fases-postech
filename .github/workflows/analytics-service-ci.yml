@@ -10,6 +10,8 @@ on:
 
 jobs:
   analytics_service_ci:
+    permissions:
+      contents: write
     uses: ./.github/workflows/service-ci-base.yml
     with:
       service_name: analytics-service

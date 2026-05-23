@@ -10,6 +10,8 @@ on:
 
 jobs:
   flag_service_ci:
+    permissions:
+      contents: write
     uses: ./.github/workflows/service-ci-base.yml
     with:
       service_name: flag-service

@@ -390,4 +390,4 @@ jobs:
           fi
           git commit -m "gitops: bump ${IMAGE_NAME} image to ${IMAGE_TAG}"
           git push origin main
-# touch 2026-05-23: fix update_gitops if (secrets nao permitido no job if em workflow_call).
+# touch 2026-05-23: caller workflows precisam contents:write para update_gitops.

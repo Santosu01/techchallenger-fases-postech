@@ -10,6 +10,8 @@ on:
 
 jobs:
   auth_service_ci:
+    permissions:
+      contents: write
     uses: ./.github/workflows/service-ci-base.yml
     with:
       service_name: auth-service
