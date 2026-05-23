@@ -340,6 +340,9 @@ jobs:
     name: Update GitOps - ${{ inputs.service_name }}
     runs-on: ubuntu-latest
     needs: [push_ecr, container_build]
+    concurrency:
+      group: gitops-update-main
+      cancel-in-progress: false
     permissions:
       contents: write
     env:
@@ -389,5 +392,15 @@ jobs:
             exit 0
           fi
           git commit -m "gitops: bump ${IMAGE_NAME} image to ${IMAGE_TAG}"
-          git push origin main
-# touch 2026-05-23: caller workflows precisam contents:write para update_gitops.
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main
+            if git push origin main; then
+              echo "GitOps push succeeded on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push rejected (main moved), retrying (${attempt}/5)..."
+            sleep $((attempt * 3))
+          done
+          echo "Failed to push GitOps update after 5 attempts."
+          exit 1
+# touch 2026-05-23: concurrency gitops-update-main evita race nos 5 servicos.
