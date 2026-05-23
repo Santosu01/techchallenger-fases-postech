@@ -11,7 +11,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# touch: trigger CI GitOps rebuild (2026-05-23)
+# touch: trigger CI GitOps rebuild (2026-05-23 v2)
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

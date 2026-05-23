@@ -1,6 +1,6 @@
 package main
 
-// touch: trigger CI GitOps rebuild (2026-05-23)
+// touch: trigger CI GitOps rebuild (2026-05-23 v2)
 
 import (
 	"database/sql"
