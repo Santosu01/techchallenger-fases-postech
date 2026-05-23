@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: analytics-service
-          image: 556939139551.dkr.ecr.us-east-1.amazonaws.com/analytics-service:1194f82
+          image: 556939139551.dkr.ecr.us-east-1.amazonaws.com/analytics-service:bf8b339
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8006
