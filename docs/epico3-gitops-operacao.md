@@ -38,7 +38,24 @@ Documentos relacionados:
 | Namespace apps | `togglemaster` |
 | Tag de imagem CI | SHA curto do commit (ex.: `22809c3`) — **nao** assumir `latest` |
 
-**Senha RDS:** `rds_master_password` em `terraform.tfvars` deve ser **igual** a `POSTGRES_PASSWORD` em `gitops/cluster/app-secrets.yaml` (base64 `Togglemaster123` no exemplo atual) e ao valor usado em `sync-configmap-from-aws.sh`.
+**Senha RDS:** deve ser **identica** em todos estes pontos:
+
+| Onde | Variavel / campo |
+|------|------------------|
+| GitHub Actions (apply Terraform) | secret `TF_VAR_RDS_MASTER_PASSWORD` |
+| Terraform local | `rds_master_password` em `terraform.tfvars` |
+| Kubernetes | `POSTGRES_PASSWORD` em `gitops/cluster/app-secrets.yaml` |
+| Script ConfigMap | `RDS_MASTER_PASSWORD` ao rodar `sync-configmap-from-aws.sh` |
+
+Exemplo usado no projeto: `Togglemaster123` (base64 `VG9nZ2xlbWFzdGVyMTIz` no secret).
+
+Se o Terraform foi aplicado com senha diferente do GitOps, os pods falham com `password authentication failed`. Corrigir alinhando o secret GitHub **antes** do proximo apply, ou temporariamente:
+
+```bash
+aws rds modify-db-instance --db-instance-identifier togglemaster-homolog-auth-db \
+  --master-user-password 'SUA_SENHA' --apply-immediately --region us-east-1
+# Repetir para -flag-db e -targeting-db
+```
 
 **Postgres no RDS:** URLs usam `sslmode=require` e database `togglemaster_homolog_auth` / `_flag` / `_targeting` (nome gerado pelo Terraform).
 
@@ -55,7 +72,16 @@ Documentos relacionados:
 
 ### Fase B — Imagens no ECR
 
-5. Garantir secrets no GitHub Actions (Epico 2) e **push em `main`** que altere codigo dos servicos ou `service-ci-base.yml`, **ou** build/push manual.
+5. Garantir imagens no ECR por **CI** (push em `main` que altere codigo dos servicos) **ou** script local:
+
+```bash
+# ECR vazio apos terraform apply? Build/push local (WSL + Docker):
+export ECR_IMAGE_TAG='22809c3'   # ou SHA curto desejado
+python3 docs/scripts/linux/fix-crlf.py   # se scripts vieram do Windows
+chmod +x docs/scripts/linux/push-all-ecr.sh
+./docs/scripts/linux/push-all-ecr.sh
+```
+
 6. Conferir tags: `aws ecr list-images --repository-name auth-service --region us-east-1`
 7. Anotar a tag SHA (ex.: `22809c3`) para os cinco `gitops/apps/*/deployment.yaml`.
 
@@ -95,13 +121,35 @@ Detalhes: [../gitops/argocd/README.md](../gitops/argocd/README.md).
 
 ### Fase E — Demonstracao CI → GitOps → Argo
 
-12. Job no CI que, apos push ECR, commita alteracao da linha `image:` em `gitops/apps/<servico>/deployment.yaml`.
-13. Evidencia: print do commit + Argo CD **Synced/Healthy** nos 5 servicos.
+13. Job `update_gitops` em `.github/workflows/service-ci-base.yml`: apos push ECR, commita a linha `image:` em `gitops/apps/<servico>/deployment.yaml` na branch `main`.
+14. Evidencia para o video: print do commit `gitops: bump ...` + Argo CD **Synced/Healthy** nos 5 servicos.
 
 ### Fase F — Encerrar sessao
 
-14. `terraform destroy` (workflow manual) para nao consumir creditos.
-15. Credenciais Academy expiram; na proxima sessao repetir Fase A.
+15. `terraform destroy` (workflow manual) para nao consumir creditos.
+16. Credenciais Academy expiram; na proxima sessao repetir Fase A.
+
+---
+
+## Validacao realizada (referencia — maio/2026)
+
+Sessao efemera concluida com sucesso no cluster `togglemaster-eks-homolog` (conta `556939139551`):
+
+| Item | Resultado |
+|------|-----------|
+| Argo CD | Instalado (`install-argocd.sh`) |
+| Applications | 6 registradas; 5 servicos **Synced/Healthy** |
+| Pods | 5/5 Running (1/1 Ready) |
+| Tag ECR | `22809c3` (build local via `push-all-ecr.sh` apos ECR vazio) |
+| `togglemaster-cluster` app | Synced, **Progressing** (ingress sem IP — NGINX Ingress nao instalado) |
+
+Comandos de verificacao:
+
+```bash
+kubectl get applications -n argocd
+kubectl get pods -n togglemaster
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
 
 ---
 
@@ -115,8 +163,11 @@ Detalhes: [../gitops/argocd/README.md](../gitops/argocd/README.md).
 | `latest: not found` | CI publica so SHA | Tag `22809c3` (ou atual) nos deployments |
 | `no such host` no RDS | ConfigMap antigo | `sync-configmap-from-aws.sh` apos apply |
 | `no encryption` / `pg_hba` | RDS exige SSL | `?sslmode=require` nas DATABASE_URL |
-| `password authentication failed` | Senha tfvars != secret/ConfigMap | Alinhar senha ou `modify-db-instance` |
+| `password authentication failed` | Senha tfvars != secret/ConfigMap/GitHub secret | Alinhar tabela de senha RDS acima ou `modify-db-instance` |
+| ECR sem imagens apos apply | Repos criados vazios pelo Terraform | CI ou `push-all-ecr.sh` |
+| `bash\r: Permission denied` (WSL) | CRLF nos scripts `.sh` | `python3 docs/scripts/linux/fix-crlf.py` |
 | Argo sobrescreve AWS keys | `aws-credentials` vazio no Git | Secret so via `update-aws-credentials.sh` |
+| App cluster Progressing | Ingress sem controller / HPA sem metrics | Opcional: instalar ingress-nginx e metrics-server |
 
 ---
 
@@ -130,24 +181,34 @@ gitops/
     ...
   scripts/
     sync-configmap-from-aws.sh
-  argocd/           # (futuro) Applications e bootstrap Argo
+  argocd/           # AppProject + 6 Applications (branch main)
 ```
+
+Scripts auxiliares em `docs/scripts/linux/`:
+
+| Script | Uso |
+|--------|-----|
+| `bootstrap-epico3.sh` | ConfigMap + cluster + apps + aws-credentials |
+| `install-argocd.sh` | Argo CD + Applications (inclui bootstrap) |
+| `push-all-ecr.sh` | Build/push das 5 imagens quando ECR esta vazio |
+| `fix-crlf.py` | Converte `.sh` para LF (WSL) |
+| `update-aws-credentials.sh` | Secret `aws-credentials` nos pods AWS |
 
 Deployments **nao** usam `nodeSelector: eks.amazonaws.com/compute-type: auto` (node group padrao do Terraform).
 
 ---
 
-## Checklist rapido Epico 3 (fechar epico)
+## Checklist rapido Epico 3
 
 - [x] Pasta GitOps no repositorio
 - [x] Validacao manual no EKS (`kubectl`, pods 1/1 com ConfigMap correto)
 - [x] Script regenerar ConfigMap apos apply
 - [x] Script bootstrap de sessao (`docs/scripts/linux/bootstrap-epico3.sh`)
-- [ ] Argo CD instalado no EKS
-- [ ] 5 Applications + cluster (ou app-of-apps)
-- [ ] CI atualiza tag no GitOps
-- [ ] Autosync + evidencia UI
-- [ ] Trecho no video: CI → Git → Argo sync
+- [x] Argo CD instalado no EKS
+- [x] 5 Applications + cluster (6 apps com autosync)
+- [x] CI atualiza tag no GitOps (`update_gitops`)
+- [x] Autosync + evidencia UI (5 servicos Healthy)
+- [ ] Trecho no video: CI → Git → Argo sync (gravacao)
 
 ---
 

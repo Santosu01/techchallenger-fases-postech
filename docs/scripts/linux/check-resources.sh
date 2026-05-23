@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# VERIFICAR STATUS - ToggleMaster
+# VERIFICAR STATUS - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 

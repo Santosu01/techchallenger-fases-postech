@@ -2,7 +2,11 @@
 
 Scripts para automatizar o deploy do ToggleMaster na AWS.
 
-**Sessao efemera (Terraform apply → EKS → destroy):** use `linux/bootstrap-epico3.sh` e o guia [epico3-gitops-operacao.md](../epico3-gitops-operacao.md). Cluster EKS: `togglemaster-eks-homolog`.
+**Sessao efemera (Terraform apply → EKS → destroy):** use `linux/bootstrap-epico3.sh` ou `linux/install-argocd.sh` e o guia [epico3-gitops-operacao.md](../epico3-gitops-operacao.md). Cluster EKS: `togglemaster-eks-homolog`.
+
+**ECR vazio apos apply:** `./linux/push-all-ecr.sh` (requer Docker no WSL).
+
+**Erro `bash\r` no WSL:** `python3 linux/fix-crlf.py`
 
 ## 📁 Estrutura
 
@@ -31,6 +35,9 @@ scripts/
 │   ├── deploy-full.sh                        # Deploy completo (tudo em um!)
 │   ├── bootstrap-epico3.sh                   # Bootstrap GitOps apos terraform apply (Epico 3)
 │   ├── install-argocd.sh                     # Instala Argo CD + Applications (Epico 3)
+│   ├── push-all-ecr.sh                       # Build/push 5 imagens quando ECR vazio (Epico 3)
+│   ├── fix-crlf.py                           # Converte scripts .sh para LF (WSL)
+│   ├── update-aws-credentials.sh             # Credenciais AWS nos pods (evaluation/analytics)
 │   └── cleanup-k8s.sh                        # Limpeza de recursos
 └── README.md                                 # Este arquivo
 ```
@@ -124,7 +131,7 @@ REGIAO="us-east-1"
 REGISTRY_ID="123456789012"
 
 # Cluster EKS
-CLUSTER_NAME="togglemaster-cluster"
+CLUSTER_NAME="togglemaster-eks-homolog"
 NAMESPACE="togglemaster"
 ```
 
@@ -143,6 +150,10 @@ NAMESPACE="togglemaster"
 | `check-resources.bat/.sh` | Mostra status de todos os recursos | `REGIAO`, `CLUSTER_NAME`, `NAMESPACE` |
 | `test-api.bat/.sh` | Testa todos os serviços via HTTP | `NAMESPACE` |
 | `deploy-full.bat/.sh` | **Deploy completo!** Executa tudo em sequência | Todas as constantes acima |
+| `bootstrap-epico3.sh` | Bootstrap GitOps apos `terraform apply` (Epico 3) | `RDS_MASTER_PASSWORD`, `ECR_IMAGE_TAG` |
+| `install-argocd.sh` | Argo CD + Applications (Epico 3) | Idem bootstrap |
+| `push-all-ecr.sh` | Build/push das 5 imagens para ECR local | `ECR_IMAGE_TAG`, Docker |
+| `update-aws-credentials.sh` | Secret AWS nos pods | Credenciais em `~/.aws/credentials` |
 | `cleanup-k8s.bat/.sh` | Limpa recursos do Kubernetes | `NAMESPACE`, `CLUSTER_NAME` |
 
 ## ⚡ Deploy Completo Automatizado

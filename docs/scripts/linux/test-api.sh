@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# TESTAR SERVIÇOS - ToggleMaster
+# TESTAR SERVIÇOS - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 

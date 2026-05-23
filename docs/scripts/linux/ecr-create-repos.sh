@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# CRIAR REPOSITÓRIOS ECR - ToggleMaster
+# CRIAR REPOSITÓRIOS ECR - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 

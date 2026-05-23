@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# LIMPEZA DE RECURSOS - ToggleMaster
+# LIMPEZA DE RECURSOS - ToggleMaste
 # ==========================================
 # ATENÇÃO: Este script irá deletar todos os recursos criados
 # ==========================================
@@ -25,7 +25,7 @@ echo "- Namespace do Kubernetes e todos os pods"
 echo ""
 echo "Para limpar recursos AWS, use o console AWS."
 echo ""
-read -p "Continuar? (s/N) " -n 1 -r
+read -p "Continuar? (s/N) " -n 1 -
 echo ""
 if [[ ! $REPLY =~ ^[Ss]$ ]]; then
     echo "Cancelado."

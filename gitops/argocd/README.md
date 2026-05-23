@@ -47,6 +47,13 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 Abra `https://localhost:8080` — usuario `admin`, senha inicial no secret `argocd-initial-admin-secret`.
 
-## Proximo passo do epico
+## CI → GitOps
 
-CI atualizando `image:` em `gitops/apps/*/deployment.yaml` apos push no ECR (workflow GitHub Actions).
+Job `update_gitops` em `.github/workflows/service-ci-base.yml`: apos push no ECR, commita a tag em `gitops/apps/<servico>/deployment.yaml` na branch `main`. Argo CD sincroniza via autosync.
+
+## Validacao (maio/2026)
+
+- Cluster: `togglemaster-eks-homolog`, conta `556939139551`
+- 5 servicos: **Synced/Healthy** na UI
+- Tag ECR: `22809c3`
+- App `togglemaster-cluster`: Progressing (ingress sem NGINX controller — opcional)

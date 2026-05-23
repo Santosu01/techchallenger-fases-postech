@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# BUILD E PUSH DE IMAGENS DOCKER - ToggleMaster
+# BUILD E PUSH DE IMAGENS DOCKER - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 

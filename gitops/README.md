@@ -61,6 +61,7 @@ Variaveis opcionais: `PROJECT_NAME`, `ENVIRONMENT`, `AWS_REGION`, `SQS_QUEUE_NAM
 
 - Registry: `556939139551.dkr.ecr.us-east-1.amazonaws.com/<servico>:<tag>`
 - CI publica tag **SHA curto** (7 caracteres); nao assumir `latest` no ECR.
+- Apos **novo** `terraform apply`, repositorios ECR podem existir **sem imagens** — use CI ou `docs/scripts/linux/push-all-ecr.sh`.
 - Deployments **sem** `nodeSelector: eks.amazonaws.com/compute-type: auto` (node group Terraform).
 
 ---

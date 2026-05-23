@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# AUTENTICAR NO ECR - ToggleMaster
+# AUTENTICAR NO ECR - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 

@@ -94,9 +94,9 @@ Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
 ---
 
 ## Epico 3 - CD + GitOps (ArgoCD)
-**Status geral:** Em andamento (GitOps + CI→Git prontos; instalar Argo CD no cluster pendente)
+**Status geral:** Concluido no cluster (Argo CD + 5 servicos Synced/Healthy). Pendente: evidencia de video (CI→Git→Argo) e ingress/HPA opcionais.
 
-**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **Argo CD:** `docs/scripts/linux/install-argocd.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
+**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **Argo CD:** `docs/scripts/linux/install-argocd.sh` | **ECR local:** `docs/scripts/linux/push-all-ecr.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
 
 ### Requisitos obrigatorios
 - [x] Repositorio (ou pasta) GitOps definido com manifestos/Helm (`gitops/`, ver `gitops/README.md`)
@@ -106,15 +106,19 @@ Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
 - [x] Roteiro de sessao efemera documentado (subir → gravar → destroy)
 - [x] Manifestos Argo CD no Git (`gitops/argocd/app-project.yaml` + 6 Applications)
 - [x] CI atualizando automaticamente a tag da imagem no repositorio GitOps (`update_gitops` em `service-ci-base.yml`)
-- [ ] ArgoCD instalado no EKS (`docs/scripts/linux/install-argocd.sh`)
-- [ ] ArgoCD monitorando repositorio GitOps e sincronizando automaticamente
-- [ ] Sync ponta a ponta comprovado na interface do ArgoCD
+- [x] ArgoCD instalado no EKS (`docs/scripts/linux/install-argocd.sh`)
+- [x] ArgoCD monitorando repositorio GitOps e sincronizando automaticamente (autosync prune/selfHeal)
+- [x] Sync validado na UI: 5 microsservicos **Synced/Healthy** (maio/2026, cluster `togglemaster-eks-homolog`)
+- [ ] Evidencia gravada: pipeline CI commita tag → Argo detecta e sincroniza (trecho do video)
 
 ### O que ja foi aprendido / corrigido (referencia)
 - Registry ECR: conta `556939139551` (nao `154367514500` dos exemplos antigos)
 - Imagem: tag do CI (SHA curto), nao `latest` vazio no ECR
+- **ECR vazio apos novo `terraform apply`:** usar CI ou `./docs/scripts/linux/push-all-ecr.sh`
 - RDS: hosts mudam a cada apply; regenerar ConfigMap obrigatorio
-- Senha RDS: igual em `terraform.tfvars`, `app-secrets` e `RDS_MASTER_PASSWORD` no sync
+- Senha RDS: **obrigatorio** alinhar `TF_VAR_RDS_MASTER_PASSWORD` (GitHub), `app-secrets`, `RDS_MASTER_PASSWORD` no sync e `rds_master_password` no Terraform — se divergir, `password authentication failed` nos pods
+- Scripts `.sh` no Windows/WSL: rodar `python3 docs/scripts/linux/fix-crlf.py` se aparecer erro `bash\r`
+- `togglemaster-cluster` Application pode ficar **Progressing** sem NGINX Ingress Controller (ingress sem ADDRESS)
 
 ---
 
@@ -157,13 +161,15 @@ Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
 ### 1) Video de demonstracao (ate 20 min)
 - [ ] IaC: mostrar `terraform plan` + `terraform apply` (ou recursos finais na AWS)
 - [ ] DevSecOps: demonstrar pipeline falhando em seguranca e depois passando
-- [ ] GitOps: mostrar pipeline atualizando tag no repositório GitOps
-- [ ] ArgoCD: mostrar deteccao e sincronizacao automatica da nova versao
+- [ ] GitOps: mostrar pipeline atualizando tag no repositorio GitOps
+- [ ] ArgoCD: sync automatico (5 apps ja validados Synced/Healthy — falta gravar)
 
 ### 2) Codigo fonte no repositorio
 - [x] Codigo Terraform estruturado e componentizado
 - [x] Workflows CI em `.github/workflows` com esteira base implementada
-- [x] Manifestos Kubernetes ajustados para modelo GitOps (`gitops/` + scripts de sync e bootstrap)
+- [x] Job CI `update_gitops` (push ECR → commit em `gitops/apps/`)
+- [x] Manifestos Kubernetes GitOps + Argo CD Applications
+- [x] Scripts de operacao Epico 3 (bootstrap, install-argocd, push-all-ecr, fix-crlf)
 - [x] Guia Epico 3 (`docs/epico3-gitops-operacao.md`)
 
 ### 3) Relatorio de entrega (PDF ou TXT)

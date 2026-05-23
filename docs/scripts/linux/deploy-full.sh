@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# DEPLOY COMPLETO - ToggleMaster
+# DEPLOY COMPLETO - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 
@@ -37,14 +37,14 @@ echo "2. Build e push das imagens"
 echo "3. Configurar kubectl"
 echo "4. Deploy no Kubernetes"
 echo ""
-read -p "Continuar? (s/N) " -n 1 -r
+read -p "Continuar? (s/N) " -n 1 -
 echo ""
 if [[ ! $REPLY =~ ^[Ss]$ ]]; then
     echo "Cancelado."
     exit 0
 fi
 
-clear
+clea
 echo ""
 echo "=========================================="
 echo "[1/4] AUTENTICANDO NO ECR"
@@ -58,7 +58,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-clear
+clea
 echo ""
 echo "=========================================="
 echo "[2/4] BUILD E PUSH DAS IMAGENS"
@@ -77,7 +77,7 @@ for SERVICE in $SERVICES; do
     cd ../..
 done
 
-clear
+clea
 echo ""
 echo "=========================================="
 echo "[3/4] CONFIGURANDO KUBECTL"
@@ -90,7 +90,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-clear
+clea
 echo ""
 echo "=========================================="
 echo "[4/4] DEPLOY NO KUBERNETES"
@@ -103,7 +103,7 @@ kubectl apply -f "$K8S_DIR/4-deployments.yaml"
 kubectl apply -f "$K8S_DIR/5-ingress.yaml"
 kubectl apply -f "$K8S_DIR/6-hpa.yaml"
 
-clear
+clea
 echo ""
 echo "=========================================="
 echo "Verificando status dos pods..."

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# DEPLOY NO KUBERNETES - ToggleMaster
+# DEPLOY NO KUBERNETES - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 

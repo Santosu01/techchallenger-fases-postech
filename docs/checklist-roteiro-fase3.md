@@ -24,7 +24,7 @@ Checklist consolidado a partir de:
 - [ ] Validar roles EKS (`eks_cluster_role_arn`, `eks_node_role_arn`)
 - [ ] Criar bucket de state Terraform (bootstrap do backend remoto)
 - [ ] Criar `infra/terraform/terraform.tfvars` a partir do exemplo
-- [ ] Preencher `rds_master_username` e `rds_master_password` (mesma senha em `gitops/cluster/app-secrets.yaml`)
+- [ ] Preencher `rds_master_username` e `rds_master_password` (mesma senha em `gitops/cluster/app-secrets.yaml` **e** secret GitHub `TF_VAR_RDS_MASTER_PASSWORD`)
 - [ ] Configurar secrets no GitHub Actions:
   - [ ] `AWS_REGION`
   - [ ] `AWS_ACCOUNT_ID`
@@ -90,15 +90,25 @@ Checklist consolidado a partir de:
 - [ ] `./docs/scripts/linux/update-aws-credentials.sh`
 - [ ] `kubectl get pods -n togglemaster` — 5 deployments **1/1**
 
-### Fechar epico (pendente)
+### Fechar epico
 
-- [ ] Push `gitops/argocd/` para branch `main` no GitHub
-- [ ] Rodar `./docs/scripts/linux/install-argocd.sh`
-- [ ] Validar 6 Applications Synced na UI
-- [ ] Habilitar autosync (prune/self-heal conforme politica)
-- [ ] Integrar CI para atualizar tag no GitOps (commit em `main`)
-- [ ] Validar sync automatico ponta a ponta (UI Argo CD)
-- [ ] Print/evidencia para relatorio e video
+- [x] Push `gitops/argocd/` para branch `main` no GitHub
+- [x] Rodar `./docs/scripts/linux/install-argocd.sh`
+- [x] Validar 6 Applications (5 servicos Synced/Healthy na UI)
+- [x] Autosync prune/self-heal nas Applications
+- [x] CI `update_gitops` commita tag em `gitops/apps/` apos ECR
+- [x] Sync automatico validado na UI (maio/2026)
+- [ ] Print/evidencia CI→Git→Argo para relatorio e video (gravacao)
+
+### Scripts Epico 3
+
+| Script | Descricao |
+|--------|-----------|
+| `bootstrap-epico3.sh` | Sessao: kubeconfig, ConfigMap, apps, aws-credentials |
+| `install-argocd.sh` | Bootstrap + Argo CD + Applications |
+| `push-all-ecr.sh` | Build/push 5 imagens (ECR vazio apos apply) |
+| `fix-crlf.py` | LF nos `.sh` para WSL |
+| `update-aws-credentials.sh` | Secret AWS nos pods evaluation/analytics |
 
 ---
 

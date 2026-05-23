@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# CONFIGURAR KUBECTL - ToggleMaster
+# CONFIGURAR KUBECTL - ToggleMaste
 # ==========================================
 # EDITE AS VARIAVEIS ABAIXO:
 
