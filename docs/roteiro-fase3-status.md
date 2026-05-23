@@ -96,7 +96,7 @@ Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
 ## Epico 3 - CD + GitOps (ArgoCD)
 **Status geral:** Concluido no cluster (Argo CD + 5 servicos Synced/Healthy). Pendente: evidencia de video (CI→Git→Argo) e ingress/HPA opcionais.
 
-**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **Argo CD:** `docs/scripts/linux/install-argocd.sh` | **ECR local:** `docs/scripts/linux/push-all-ecr.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
+**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Gravacao (~5 min):** [roteiro-gravacao-epico3-5min.md](roteiro-gravacao-epico3-5min.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **Argo CD:** `docs/scripts/linux/install-argocd.sh` | **ECR local:** `docs/scripts/linux/push-all-ecr.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
 
 ### Requisitos obrigatorios
 - [x] Repositorio (ou pasta) GitOps definido com manifestos/Helm (`gitops/`, ver `gitops/README.md`)
