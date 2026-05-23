@@ -42,6 +42,48 @@ jobs:
           aws-session-token: ${{ env.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Validate AWS account vs EKS role ARNs
+        shell: bash
+        run: |
+          set -euo pipefail
+          CALLER_ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
+          CLUSTER_ARN="${TF_VAR_eks_cluster_role_arn:-}"
+          NODE_ARN="${TF_VAR_eks_node_role_arn:-}"
+
+          echo "Caller AWS account: ${CALLER_ACCOUNT}"
+          echo "Cluster role ARN set: $([ -n "$CLUSTER_ARN" ] && echo yes || echo NO — secret TF_VAR_EKS_CLUSTER_ROLE_ARN missing or empty)"
+          echo "Node role ARN set: $([ -n "$NODE_ARN" ] && echo yes || echo NO — secret TF_VAR_EKS_NODE_ROLE_ARN missing or empty)"
+
+          if [ -z "$CLUSTER_ARN" ] || [ -z "$NODE_ARN" ]; then
+            echo "::error::Defina os secrets TF_VAR_EKS_CLUSTER_ROLE_ARN e TF_VAR_EKS_NODE_ROLE_ARN (nome exato, maiusculas)."
+            exit 1
+          fi
+
+          CLUSTER_ACCOUNT="$(echo "$CLUSTER_ARN" | sed -n 's|arn:aws:iam::\([0-9]*\):role/.*|\1|p')"
+          NODE_ACCOUNT="$(echo "$NODE_ARN" | sed -n 's|arn:aws:iam::\([0-9]*\):role/.*|\1|p')"
+
+          echo "Cluster role account: ${CLUSTER_ACCOUNT:-INVALID_ARN}"
+          echo "Node role account: ${NODE_ACCOUNT:-INVALID_ARN}"
+
+          if [ "$CALLER_ACCOUNT" != "$CLUSTER_ACCOUNT" ] || [ "$CALLER_ACCOUNT" != "$NODE_ACCOUNT" ]; then
+            echo "::error::Cross-account mismatch: credenciais AWS (conta ${CALLER_ACCOUNT}) != ARN das roles EKS. Atualize os secrets na mesma sessao do Academy."
+            echo "Cluster ARN (primeiros 60 chars): ${CLUSTER_ARN:0:60}..."
+            exit 1
+          fi
+
+          for LABEL_ARN in "Cluster:${CLUSTER_ARN}" "Node:${NODE_ARN}"; do
+            LABEL="${LABEL_ARN%%:*}"
+            ARN="${LABEL_ARN#*:}"
+            ROLE_NAME="${ARN#*role/}"
+            if ! aws iam get-role --role-name "$ROLE_NAME" --query Role.Arn --output text >/dev/null 2>&1; then
+              echo "::error::Role IAM invalida ou inexistente (${LABEL}): copie o ARN COMPLETO do console IAM (Roles > LabEks* > ARN). Tamanho atual: ${#ARN} chars."
+              exit 1
+            fi
+            echo "OK: role ${LABEL} existe (${ROLE_NAME})"
+          done
+
+          echo "OK: conta e roles EKS alinhadas (${CALLER_ACCOUNT})."
+
       - name: Terraform init
         run: terraform init
 

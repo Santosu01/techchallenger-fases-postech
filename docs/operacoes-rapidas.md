@@ -1,32 +1,55 @@
 # ToggleMaster - Guia Rápido de Operações
 
-Referência rápida para operar o ToggleMaster no EKS. Para setup inicial completo, veja [guia-completo-implementacao.md](guia-completo-implementacao.md).
+Referência rápida para operar o ToggleMaster no EKS.
+
+| Cenario | Documento |
+|---------|-----------|
+| Setup Terraform + secrets GitHub | [fase3-setup-checklist.md](fase3-setup-checklist.md) |
+| **GitOps / sessao efemera / gravacao** | **[epico3-gitops-operacao.md](epico3-gitops-operacao.md)** |
+| CI DevSecOps | [epico2-ci-devsecops-operacao.md](epico2-ci-devsecops-operacao.md) |
+| Status por epico | [roteiro-fase3-status.md](roteiro-fase3-status.md) |
+| Legado (`k8s/` antigo) | [guia-completo-implementacao.md](guia-completo-implementacao.md) |
 
 ---
 
-## 📋 Checklist de Deploy Rápido
+## 📋 Deploy rápido (GitOps — recomendado)
+
+Cluster Terraform: **`togglemaster-eks-homolog`** (nao `togglemaster-cluster`).
 
 ```bash
-# 1. Configurar kubectl
-aws eks update-kubeconfig --region us-east-1 --name togglemaster-cluster
+# 1. Credenciais AWS validas no WSL
+aws sts get-caller-identity
 
-# 2. Aplicar manifests (em ordem)
+# 2. Kubeconfig
+aws eks update-kubeconfig --region us-east-1 --name togglemaster-eks-homolog
+
+# 3. Bootstrap (ConfigMap da AWS + apps + aws-credentials)
+export RDS_MASTER_PASSWORD='mesma_senha_do_terraform_tfvars'
+export ECR_IMAGE_TAG='tag_no_ecr'   # ex.: 22809c3
+./docs/scripts/linux/bootstrap-epico3.sh
+
+# 4. Verificar
+kubectl get pods -n togglemaster
+```
+
+Detalhes, Argo CD e destroy: [epico3-gitops-operacao.md](epico3-gitops-operacao.md).
+
+---
+
+## 📋 Deploy legado (`k8s/` — referencia)
+
+```bash
+aws eks update-kubeconfig --region us-east-1 --name togglemaster-eks-homolog
+
 kubectl apply -f k8s/1-namespace.yaml
 kubectl apply -f k8s/2-secrets.yaml
-kubectl apply -f k8s/3-configmap.yaml
+kubectl apply -f k8s/3-configmap.yaml   # preferir regenerar via gitops/scripts
 kubectl apply -f k8s/4-deployments.yaml
 kubectl apply -f k8s/5-ingress.yaml
 kubectl apply -f k8s/6-hpa.yaml
 
-# 3. Criar secret AWS (obrigatório para analytics e evaluation)
-kubectl create secret generic aws-credentials -n togglemaster \
-  --from-literal=AWS_ACCESS_KEY_ID="<KEY>" \
-  --from-literal=AWS_SECRET_ACCESS_KEY="<SECRET>" \
-  --from-literal=AWS_SESSION_TOKEN="<TOKEN>"
-
-# 4. Verificar pods
+./docs/scripts/linux/update-aws-credentials.sh
 kubectl get pods -n togglemaster
-# Todos devem estar Running 1/1
 ```
 
 ---

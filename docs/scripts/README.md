@@ -2,6 +2,8 @@
 
 Scripts para automatizar o deploy do ToggleMaster na AWS.
 
+**Sessao efemera (Terraform apply → EKS → destroy):** use `linux/bootstrap-epico3.sh` e o guia [epico3-gitops-operacao.md](../epico3-gitops-operacao.md). Cluster EKS: `togglemaster-eks-homolog`.
+
 ## 📁 Estrutura
 
 ```
@@ -27,6 +29,8 @@ scripts/
 │   ├── check-resources.sh                    # Verificar status dos recursos
 │   ├── test-api.sh                           # Testar todos os serviços
 │   ├── deploy-full.sh                        # Deploy completo (tudo em um!)
+│   ├── bootstrap-epico3.sh                   # Bootstrap GitOps apos terraform apply (Epico 3)
+│   ├── install-argocd.sh                     # Instala Argo CD + Applications (Epico 3)
 │   └── cleanup-k8s.sh                        # Limpeza de recursos
 └── README.md                                 # Este arquivo
 ```

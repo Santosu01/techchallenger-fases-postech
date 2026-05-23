@@ -2,11 +2,31 @@
 
 Este roteiro segue os requisitos oficiais do Tech Challenge e marca com check tudo que ja foi concluido.
 
+**Checklist operacional:** [checklist-roteiro-fase3.md](checklist-roteiro-fase3.md) | **GitOps / sessao efemera:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
+
 ## Premissas de ambiente (AWS Academy x Conta Pessoal)
 
 - [x] Regra documentada: em AWS Academy nao criar IAM Roles/Policies via Terraform
 - [x] Uso de LabRole para EKS e Node Groups considerado no projeto
 - [x] Alternativa documentada: em conta pessoal e permitido criar IAM via Terraform
+
+## Ambiente efemero (subir → testar/gravar → destroy)
+
+Infra **nao fica ligada o tempo todo**. O que permanece e o **Git** (`gitops/`, CI, Terraform state no S3). A cada nova sessao:
+
+1. Credenciais AWS Academy no WSL (`~/.aws/credentials`)
+2. `terraform apply` (ou workflow manual)
+3. Push/confirmar imagens no ECR (tag SHA)
+4. `./docs/scripts/linux/bootstrap-epico3.sh` (ConfigMap dinamico + apps + aws-credentials)
+5. Instalar/configurar Argo CD (quando fechar Epico 3)
+6. `terraform destroy` ao terminar
+
+Guia completo: [epico3-gitops-operacao.md](epico3-gitops-operacao.md)
+
+| Recurso | Nome correto (nao usar docs antigos `togglemaster-cluster`) |
+|---------|--------------------------------------------------------------|
+| Cluster EKS | `togglemaster-eks-homolog` |
+| Regiao | `us-east-1` |
 
 ---
 
@@ -74,15 +94,27 @@ Este roteiro segue os requisitos oficiais do Tech Challenge e marca com check tu
 ---
 
 ## Epico 3 - CD + GitOps (ArgoCD)
-**Status geral:** Nao iniciado
+**Status geral:** Em andamento (GitOps + CI→Git prontos; instalar Argo CD no cluster pendente)
+
+**Documentacao:** [epico3-gitops-operacao.md](epico3-gitops-operacao.md) | **Bootstrap:** `docs/scripts/linux/bootstrap-epico3.sh` | **Argo CD:** `docs/scripts/linux/install-argocd.sh` | **ConfigMap AWS:** `gitops/scripts/sync-configmap-from-aws.sh`
 
 ### Requisitos obrigatorios
-- [ ] Repositorio (ou pasta) GitOps definido com manifestos/Helm
-- [ ] ArgoCD instalado no EKS
-- [ ] ArgoCD configurado para os 5 microsservicos
-- [ ] CI atualizando automaticamente a tag da imagem no repositorio GitOps
-- [ ] ArgoCD monitorando repositório GitOps e sincronizando automaticamente
+- [x] Repositorio (ou pasta) GitOps definido com manifestos/Helm (`gitops/`, ver `gitops/README.md`)
+- [x] Manifestos validados no EKS (apply manual / bootstrap; tag ECR ex.: `22809c3`, sem `nodeSelector` Auto Mode)
+- [x] ConfigMap alinhavel apos cada `terraform apply` (script sync + `sslmode=require` + DB names Terraform)
+- [x] `aws-credentials` fora do Git (`gitops/cluster/app-secrets.yaml` apenas; credenciais AWS via script)
+- [x] Roteiro de sessao efemera documentado (subir → gravar → destroy)
+- [x] Manifestos Argo CD no Git (`gitops/argocd/app-project.yaml` + 6 Applications)
+- [x] CI atualizando automaticamente a tag da imagem no repositorio GitOps (`update_gitops` em `service-ci-base.yml`)
+- [ ] ArgoCD instalado no EKS (`docs/scripts/linux/install-argocd.sh`)
+- [ ] ArgoCD monitorando repositorio GitOps e sincronizando automaticamente
 - [ ] Sync ponta a ponta comprovado na interface do ArgoCD
+
+### O que ja foi aprendido / corrigido (referencia)
+- Registry ECR: conta `556939139551` (nao `154367514500` dos exemplos antigos)
+- Imagem: tag do CI (SHA curto), nao `latest` vazio no ECR
+- RDS: hosts mudam a cada apply; regenerar ConfigMap obrigatorio
+- Senha RDS: igual em `terraform.tfvars`, `app-secrets` e `RDS_MASTER_PASSWORD` no sync
 
 ---
 
@@ -131,7 +163,8 @@ Este roteiro segue os requisitos oficiais do Tech Challenge e marca com check tu
 ### 2) Codigo fonte no repositorio
 - [x] Codigo Terraform estruturado e componentizado
 - [x] Workflows CI em `.github/workflows` com esteira base implementada
-- [ ] Manifestos Kubernetes ajustados para modelo GitOps
+- [x] Manifestos Kubernetes ajustados para modelo GitOps (`gitops/` + scripts de sync e bootstrap)
+- [x] Guia Epico 3 (`docs/epico3-gitops-operacao.md`)
 
 ### 3) Relatorio de entrega (PDF ou TXT)
 - [ ] Nomes dos participantes
