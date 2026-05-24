@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from functools import wraps
 import logging
 
-# touch: trigger CI GitOps rebuild (2026-05-23 v2)
+# touch: trigger CI GitOps rebuild (2026-05-23 v3)
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
