@@ -1,0 +1,99 @@
+================================================================================
+RELATÓRIO TÉCNICO E DE DECISÕES DE ARQUITETURA - TECH CHALLENGE FASE 4
+================================================================================
+
+Este documento descreve as decisões de arquitetura técnica adotadas na 
+implantação da Stack de Observabilidade Total e Autocura (Self-Healing) do 
+projeto ToggleMaster, com foco em resiliência e portabilidade entre diferentes 
+ambientes de laboratório do AWS Academy.
+
+--------------------------------------------------------------------------------
+1. DESENHO DA ARQUITETURA DE TELEMETRIA (OPENTELEMETRY COLLECTOR)
+--------------------------------------------------------------------------------
+A telemetria do ToggleMaster foi padronizada através do OpenTelemetry (OTel), 
+utilizando um OTel Collector implantado localmente no cluster como peça central.
+
+* Roteamento de Dados: Os microsserviços (Go e Python) enviam seus logs, 
+  métricas e traces via protocolo padrão OTLP (OpenTelemetry Protocol) para 
+  o endpoint interno do Collector ("otel-collector.monitoring.svc.cluster.local:4317").
+* Decisão Técnica: O OTel Collector atua como um buffer e roteador. Ele recebe 
+  os dados em formato agnóstico e se encarrega de enviá-los para os respectivos 
+  destinos:
+  - Métricas -> Exportadas para o Prometheus (local).
+  - Logs -> Exportados para o Grafana Loki (local).
+  - Traces -> Exportados para a plataforma comercial de APM (New Relic).
+* Vantagem: Essa abordagem elimina o lock-in de fornecedor (vendor lock-in) 
+  e evita o desperdício de recursos computacionais nos pods das aplicações, 
+  pois os serviços não precisam executar múltiplos SDKs proprietários.
+
+--------------------------------------------------------------------------------
+2. COMPARATIVO E ESCOLHA DA FERRAMENTA APM: NEW RELIC
+--------------------------------------------------------------------------------
+Escolhemos o NEW RELIC como nossa plataforma de APM comercial para visibilidade 
+profunda e Distributed Tracing.
+
+* New Relic vs. Datadog:
+  - O New Relic fornece suporte nativo a endpoints de ingestão OTLP (gRPC) direta 
+    na nuvem sem a necessidade de instalar agentes daemonsets complexos (como 
+    exige o Datadog) no cluster.
+  - A interface de Distributed Tracing do New Relic reconstrói facilmente a 
+    árvore de chamadas completa do ToggleMaster, mostrando o fluxo desde a 
+    chamada do cliente no "evaluation-service", passando pela validação do 
+    token no "auth-service", consulta de regras no "targeting-service" e status 
+    da flag no "flag-service".
+  - O modelo de precificação do New Relic possui uma camada gratuita (Free Tier) 
+    robusta de 100 GB/mês, ideal para fins educacionais e trabalhos acadêmicos.
+
+--------------------------------------------------------------------------------
+3. CONFIGURAÇÃO DE INCIDENTES: OPSGENIE E CHATOPS (DISCORD)
+--------------------------------------------------------------------------------
+Para gerenciar a fadiga de alertas (Alert Fatigue) e notificar o time em tempo 
+real, integramos o Grafana e o APM com o OpsGenie e um webhook do Discord.
+
+* OpsGenie vs. PagerDuty: Escolhemos o OpsGenie (da suite Atlassian) devido à 
+  sua integração simplificada com regras de roteamento de escala, politicas de 
+  silenciamento de alertas repetitivos e fácil vinculação de webhooks.
+* Fluxo de Alertas:
+  1. O Grafana avalia a query de erro das aplicações (taxa de erros 5xx > 5%).
+  2. Ao atingir o limite, o alerta entra em estado de "Firing" (Disparado).
+  3. O alerta envia um Webhook HTTP para o OpsGenie, criando um incidente.
+  4. Simultaneamente, o OpsGenie envia uma mensagem rica contendo detalhes da 
+     falha (pod afetado, duração e severidade) para o canal de ChatOps no Discord.
+
+--------------------------------------------------------------------------------
+4. ARQUITETURA DE RESPOSTA ATIVA (SELF-HEALING)
+--------------------------------------------------------------------------------
+A autocura do sistema foi implementada através de um Webhook Receiver leve 
+executando no namespace de monitoramento do cluster.
+
+* Funcionamento:
+  - Criamos uma aplicação Flask leve ("webhook-receiver") exposta via Service.
+  - O Grafana/APM está configurado para disparar uma notificação de webhook 
+    para este receiver no momento em que o alerta entra em status "Firing".
+  - Ao receber o payload contendo o nome do serviço com falha, o script executa 
+    internamente a API do Kubernetes para realizar um reinício seguro 
+    ("kubectl rollout restart deployment/evaluation-service").
+* Justificativa: Essa arquitetura evita a dependência de ferramentas externas 
+  como lambdas complexas ou esteiras do GitHub Actions que demorariam minutos 
+  para se autenticar na AWS e interagir com o cluster, garantindo mitigação 
+  imediata em poucos segundos.
+
+--------------------------------------------------------------------------------
+5. PORTABILIDADE E ESTRATÉGIA PARA REINÍCIO DE LAB (AWS ACADEMY)
+--------------------------------------------------------------------------------
+O laboratório da AWS Academy possui um limite rígido de 3 horas de duração, 
+destruindo todos os recursos ao expirar. Desenvolvemos o Terraform com foco 
+em automação total para que qualquer integrante do grupo consiga subir e expor 
+o ecossistema em menos de 15 minutos:
+
+* Busca Dinâmica de Roles de Segurança (IAM): Não hardcodificamos ARNs das roles 
+  "LabEksClusterRole" e "LabEksNodeRole". O Terraform utiliza um data-source 
+  com regex para varrer a conta ativa do usuário e encontrar a role correspondente 
+  gerada para aquela sessão específica.
+* Isolamento de State por S3 Dinâmico: O bucket do Terraform State contém o ID 
+  da conta do usuário no nome, garantindo isolamento absoluto de estados de 
+  sessões diferentes de cada integrante do grupo.
+* Resiliência a Conflitos (Orphan Resources): O guia de inicialização inclui 
+  scripts automáticos de limpeza via AWS CLI para remover bancos de dados e 
+  grupos de subnets que eventualmente tenham ficado órfãos de sessões passadas.
+================================================================================

@@ -133,6 +133,39 @@ Se por algum motivo a execução do Terraform local ou uma sessão anterior foi 
    ```
 2. Aguarde que eles terminem de deletar por completo antes de rodar o pipeline do Terraform novamente.
 
+### 0.7. Roteiro Diário de Inicialização (Subir a Fase 3 e Conectar)
+Sempre que o tempo de 3 horas do laboratório expirar e tudo for apagado, siga este roteiro de 5 passos rápidos para reativar todo o ambiente:
+
+#### Passo 1: Subir a Infraestrutura (Fase 3)
+1. Atualize suas credenciais locais e do GitHub (conforme seções **0.1** e **0.2**).
+2. Se for a primeira vez no dia, crie o S3 Bucket de State (seção **0.3**).
+3. Vá no painel do GitHub > **Actions** > selecione **Terraform Apply Manual** > clique em **Run workflow** (escrevendo `APPLY`). Aguarde a conclusão da criação do cluster (10 a 15 minutos).
+
+#### Passo 2: Conectar o Terminal Local ao Novo Cluster
+Assim que a esteira terminar, o cluster EKS estará rodando, mas seu terminal local ainda não sabe disso. Atualize sua configuração de conexão do `kubectl`:
+```bash
+aws eks update-kubeconfig --name togglemaster-eks-homolog --region us-east-1
+```
+*Teste a conexão rodando: `kubectl get nodes`*
+
+#### Passo 3: Instalar o ArgoCD no Novo Cluster
+Como o cluster é novo, o ArgoCD precisa ser reinstalado. Adicione o repositório Helm e execute a instalação:
+```bash
+helm repo add argo https://argoproj.github.io/argo-cd
+helm repo update
+helm install argocd argo/argo-cd --namespace argocd --create-namespace
+```
+
+#### Passo 4: Fazer o Bootstrap das Aplicações via GitOps
+Aplique o manifesto de bootstrap para que o ArgoCD recrie automaticamente as nossas aplicações e configurações no namespace `togglemaster`:
+```bash
+kubectl apply -f gitops/argocd-bootstrap.yaml
+```
+*(O ArgoCD detectará o repositório e começará a baixar os microsserviços automaticamente).*
+
+#### Passo 5: Inicializar as Ferramentas de Observabilidade
+Siga para a **ETAPA 1** e **ETAPA 2** abaixo para instalar a Stack de Observabilidade (Prometheus, Loki, Grafana, OTel Collector) no novo cluster.
+
 ---
 
 ## ETAPA 1: Instalar a Stack de Monitoramento no Cluster (Prometheus, Loki, Grafana)
