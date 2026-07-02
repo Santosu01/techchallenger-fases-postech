@@ -61,7 +61,7 @@ variable "eks_cluster_name" {
 variable "eks_cluster_version" {
   type        = string
   description = "Versao Kubernetes do EKS."
-  default     = "1.28"
+  default     = "1.30"
 }
 
 variable "eks_cluster_role_arn" {

@@ -64,6 +64,7 @@ graph TD
 ---
 
 ## 🛠️ Sumário das Etapas
+0. [Etapa 0: Preparação do Ambiente AWS & Terraform (A cada reinício de Lab)](#etapa-0-preparação-do-ambiente-aws--terraform-a-cada-reinício-de-lab)
 1. [Etapa 1: Instalar a Stack de Monitoramento no Cluster (Prometheus, Loki, Grafana)](#etapa-1-instalar-a-stack-de-monitoramento-no-cluster-prometheus-loki-grafana)
 2. [Etapa 2: Deploy do OpenTelemetry Collector no Cluster](#etapa-2-deploy-do-opentelemetry-collector-no-cluster)
 3. [Etapa 3: Instrumentação Específica do Código das Aplicações](#etapa-3-instrumentação-específica-do-código-das-aplicações)
@@ -75,6 +76,62 @@ graph TD
 7. [Etapa 7: Implementação do Script e Fluxo de Self-Healing](#etapa-7-implementação-do-script-e-fluxo-de-self-healing)
 8. [Etapa 8: Roteiro Super Detalhado do Vídeo de Validação (25 min)](#etapa-8-roteiro-super-detalhado-do-vídeo-de-validação-25-min)
 9. [Etapa 9: Estrutura do Relatório de Entrega (.PDF)](#etapa-9-estrutura-do-relatório-de-entrega-pdf)
+
+---
+
+## ETAPA 0: Preparação do Ambiente AWS & Terraform (A cada reinício de Lab)
+
+Sempre que reiniciar o laboratório na AWS Academy, o ID da conta AWS e as credenciais temporárias mudam. Cada integrante do grupo deve executar os passos abaixo no seu próprio ambiente para conseguir subir o Terraform com sucesso.
+
+### 0.1. Atualizar as Credenciais da AWS Localmente
+Copie o bloco de credenciais temporárias disponibilizado no painel do AWS Academy (botão "AWS CLI") e cole-o no seu arquivo local de credenciais em `~/.aws/credentials` (no Windows, fica em `C:\Users\<Usuario>\.aws\credentials`):
+```ini
+[default]
+aws_access_key_id=ASIA...
+aws_secret_access_key=...
+aws_session_token=...
+```
+
+### 0.2. Atualizar as Secrets do Repositório GitHub
+No painel do seu repositório no GitHub, vá em **Settings > Secrets and variables > Actions** e atualize os valores das seguintes Secrets com as informações da sua nova sessão:
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+* `AWS_SESSION_TOKEN`
+* `AWS_ACCOUNT_ID` (insira o ID numérico da sua conta atual, ex: `781659100115`)
+* `AWS_REGION` (geralmente `us-east-1`)
+
+> [!NOTE]
+> As Secrets `TF_VAR_EKS_CLUSTER_ROLE_ARN` e `TF_VAR_EKS_NODE_ROLE_ARN` **não precisam mais ser atualizadas manualmente**! A infraestrutura do Terraform foi atualizada para buscar dinamicamente as roles `LabEksClusterRole` e `LabEksNodeRole` geradas automaticamente pelo AWS Academy para a sua conta atual.
+
+### 0.3. Criar o S3 Bucket de State na Conta AWS
+Como a conta AWS do laboratório é nova a cada reinício, o bucket de state do Terraform não existe e deve ser criado manualmente uma única vez no início da sessão. Rode o comando abaixo no seu terminal local:
+```bash
+aws s3 mb s3://<SEU_AWS_ACCOUNT_ID>-togglemaster-tfstate --region us-east-1
+```
+*(Substitua `<SEU_AWS_ACCOUNT_ID>` pelo ID numérico da sua conta atual)*
+
+### 0.4. Alinhamento dos Arquivos com o Novo ID de Conta
+Substitua todas as ocorrências do ID da conta AWS antigo nos arquivos do projeto pelo seu novo ID numérico:
+1. **Terraform Backend**: No arquivo `infra/terraform/providers.tf`, configure o nome correto do bucket no campo `bucket`:
+   `bucket = "<SEU_AWS_ACCOUNT_ID>-togglemaster-tfstate"`
+2. **Deployments do GitOps**: Nos arquivos de deployment em `gitops/apps/*/deployment.yaml`, atualize o ID no caminho da imagem ECR.
+3. **ConfigMaps**: Em `k8s/configmap.yaml`, `k8s/3-configmap.yaml` e `gitops/cluster/configmap.yaml`, atualize o ID da conta na URL da fila SQS (`AWS_SQS_URL`).
+
+### 0.5. Ajustar Versão do Kubernetes (EKS)
+O AWS EKS descontinuou a versão `1.28`. Certifique-se de que a variável `eks_cluster_version` esteja configurada como **`1.30`** (ou outra versão estável ativa) nos arquivos:
+* `infra/terraform/variables.tf` (valor `default`)
+* `infra/terraform/terraform.tfvars`
+
+### 0.6. Evitar Conflitos de Recursos Órfãos (`AlreadyExists`)
+Se por algum motivo a execução do Terraform local ou uma sessão anterior foi interrompida de forma incompleta, os bancos de dados RDS ou Redis podem ter sido criados na AWS, mas não estarem registrados no arquivo de estado. Se você receber erros do tipo `DBInstanceAlreadyExists` ou `CacheClusterAlreadyExists` no pipeline:
+1. Delete manualmente os recursos órfãos pelo console da AWS ou via CLI:
+   ```bash
+   aws rds delete-db-instance --db-instance-identifier togglemaster-homolog-auth-db --skip-final-snapshot
+   aws rds delete-db-instance --db-instance-identifier togglemaster-homolog-flag-db --skip-final-snapshot
+   aws rds delete-db-instance --db-instance-identifier togglemaster-homolog-targeting-db --skip-final-snapshot
+   aws elasticache delete-cache-cluster --cache-cluster-id togglemaster-homolog-redis
+   ```
+2. Aguarde que eles terminem de deletar por completo antes de rodar o pipeline do Terraform novamente.
 
 ---
 

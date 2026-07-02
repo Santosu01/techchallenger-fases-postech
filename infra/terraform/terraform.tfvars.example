@@ -10,7 +10,7 @@ private_subnet_cidrs = ["10.20.11.0/24", "10.20.12.0/24"]
 enable_nat_gateway   = true
 
 eks_cluster_name    = "togglemaster-eks"
-eks_cluster_version = "1.28"
+eks_cluster_version = "1.30"
 
 # AWS Academy (valores validados da sua conta):
 eks_cluster_role_arn = "arn:aws:iam::556939139551:role/c208526a5300486l14867713t1w556939-LabEksClusterRole-2AFY32J2abPo"
