@@ -5,7 +5,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket       = "242980968921-togglemaster-tfstate"
+    bucket       = "781659100115-togglemaster-tfstate"
     key          = "techchallenger/fase3/terraform.tfstate"
     region       = "us-east-1"
     encrypt      = true

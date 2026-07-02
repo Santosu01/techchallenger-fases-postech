@@ -23,7 +23,7 @@ data:
   
   # Configuracoes AWS
   AWS_REGION: "us-east-1"
-  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/242980968921/togglemaster-analytics-queue"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/781659100115/togglemaster-analytics-queue"
   AWS_DYNAMODB_TABLE: "ToggleMasterAnalytics"
   
   # Endpoints AWS (vazio para producao, preencher para LocalStack)

@@ -67,11 +67,13 @@ variable "eks_cluster_version" {
 variable "eks_cluster_role_arn" {
   type        = string
   description = "ARN da role do cluster EKS (LabRole no Academy)."
+  default     = ""
 }
 
 variable "eks_node_role_arn" {
   type        = string
   description = "ARN da role do node group EKS (LabRole no Academy)."
+  default     = ""
 }
 
 variable "node_instance_types" {

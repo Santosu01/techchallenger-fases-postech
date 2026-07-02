@@ -22,6 +22,14 @@ module "network" {
   tags                  = local.common_tags
 }
 
+data "aws_iam_roles" "cluster_role" {
+  name_regex = ".*LabEksClusterRole.*"
+}
+
+data "aws_iam_roles" "node_role" {
+  name_regex = ".*LabEksNodeRole.*"
+}
+
 module "eks" {
   source = "./modules/eks"
 
@@ -29,8 +37,8 @@ module "eks" {
   environment          = var.environment
   cluster_name         = var.eks_cluster_name
   cluster_version      = var.eks_cluster_version
-  cluster_role_arn     = var.eks_cluster_role_arn
-  node_role_arn        = var.eks_node_role_arn
+  cluster_role_arn     = var.eks_cluster_role_arn != "" ? var.eks_cluster_role_arn : tolist(data.aws_iam_roles.cluster_role.arns)[0]
+  node_role_arn        = var.eks_node_role_arn != "" ? var.eks_node_role_arn : tolist(data.aws_iam_roles.node_role.arns)[0]
   subnet_ids           = module.network.private_subnet_ids
   instance_types       = var.node_instance_types
   ami_type             = var.node_ami_type

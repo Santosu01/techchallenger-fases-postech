@@ -15,8 +15,6 @@ jobs:
     if: ${{ github.event.inputs.confirm_destroy == 'DESTROY' }}
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      TF_VAR_eks_cluster_role_arn: ${{ secrets.TF_VAR_EKS_CLUSTER_ROLE_ARN }}
-      TF_VAR_eks_node_role_arn: ${{ secrets.TF_VAR_EKS_NODE_ROLE_ARN }}
       TF_VAR_rds_master_username: ${{ secrets.TF_VAR_RDS_MASTER_USERNAME }}
       TF_VAR_rds_master_password: ${{ secrets.TF_VAR_RDS_MASTER_PASSWORD }}
     defaults:
