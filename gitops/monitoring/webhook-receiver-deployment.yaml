@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webhook-receiver-sa
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webhook-receiver-role
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: webhook-receiver-rb
+subjects:
+- kind: ServiceAccount
+  name: webhook-receiver-sa
+  namespace: monitoring
+roleRef:
+  kind: ClusterRole
+  name: webhook-receiver-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-receiver-code
+  namespace: monitoring
+data:
+  app.py: |
+    import os
+    import logging
+    import datetime
+    from flask import Flask, request, jsonify
+    from kubernetes import client, config
+
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+
+    app = Flask(__name__)
+
+    try:
+        config.load_incluster_config()
+        logger.info("Configuração in-cluster carregada.")
+    except Exception as e:
+        logger.error(f"Erro ao carregar configuração in-cluster: {e}")
+
+    @app.route('/alert', methods=['POST'])
+    def handle_alert():
+        data = request.json
+        logger.info(f"Alerta recebido: {data}")
+        
+        # O Grafana envia o status no campo 'status' (firing/resolved)
+        status = data.get('status', 'firing')
+        
+        # Alguns formatos de webhook do Grafana envelopam no campo 'commonAnnotations' ou 'alerts'
+        # Vamos tratar múltiplos formatos
+        if status == 'firing' or (isinstance(data, dict) and any(a.get('status') == 'firing' for a in data.get('alerts', []))):
+            logger.info("🚨 ALERTA DISPARADO (FIRING) recebido. Iniciando autocura do evaluation-service...")
+            
+            try:
+                apps_v1 = client.AppsV1Api()
+                namespace = "togglemaster"
+                deployment_name = "evaluation-service"
+                
+                # Obtém o deployment para ler a especificação atual
+                deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=namespace)
+                
+                # Adiciona ou atualiza a anotação para forçar um rolling update
+                if deployment.spec.template.metadata.annotations is None:
+                    deployment.spec.template.metadata.annotations = {}
+                
+                restarted_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                deployment.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"] = restarted_at
+                
+                # Executa o patch no deployment
+                apps_v1.patch_namespaced_deployment(name=deployment_name, namespace=namespace, body=deployment)
+                logger.info(f"✅ Self-healing executado com sucesso: rolling restart do {deployment_name} disparado às {restarted_at}")
+                return jsonify({"status": "success", "message": "Self-healing triggered successfully"}), 200
+            except Exception as e:
+                logger.error(f"❌ Erro ao disparar self-healing: {e}")
+                return jsonify({"status": "error", "message": str(e)}), 500
+        
+        logger.info(f"Alerta ignorado (Status: {status})")
+        return jsonify({"status": "ignored", "message": "No action taken"}), 200
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=5000)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-receiver
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-receiver
+  template:
+    metadata:
+      labels:
+        app: webhook-receiver
+    spec:
+      serviceAccountName: webhook-receiver-sa
+      containers:
+      - name: receiver
+        image: python:3.11-slim
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          pip install --no-cache-dir flask kubernetes
+          python /app/app.py
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        ports:
+        - containerPort: 5000
+          name: http
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+      volumes:
+      - name: app-code
+        configMap:
+          name: webhook-receiver-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-receiver
+  namespace: monitoring
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: webhook-receiver

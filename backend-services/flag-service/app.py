@@ -10,6 +10,15 @@ from dotenv import load_dotenv
 from functools import wraps
 import logging
 
+# --- Configuração OpenTelemetry ---
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -17,7 +26,22 @@ log = logging.getLogger(__name__)
 # Carrega .env para desenvolvimento local
 load_dotenv() 
 
+otel_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector.monitoring.svc.cluster.local:4317")
+if not otel_endpoint.startswith("http"):
+    otel_endpoint = f"http://{otel_endpoint}"
+
+resource = Resource.create(attributes={"service.name": "flag-service"})
+provider = TracerProvider(resource=resource)
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=otel_endpoint, insecure=True))
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+
+# Instrumenta chamadas HTTP de saída
+RequestsInstrumentor().instrument()
+
 app = Flask(__name__)
+# Instrumenta a aplicação Flask
+FlaskInstrumentor().instrument_app(app)
 CORS(app, resources={
     r"/*": {
         "origins": "*",

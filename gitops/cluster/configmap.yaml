@@ -21,6 +21,7 @@ data:
   AWS_REGION: "us-east-1"
   AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/781659100115/togglemaster-analytics-queue"
   AWS_DYNAMODB_TABLE: "ToggleMasterAnalytics"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector.monitoring.svc.cluster.local:4317"
   
   AWS_SQS_ENDPOINT_URL: ""
   AWS_DYNAMODB_ENDPOINT_URL: ""

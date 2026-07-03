@@ -164,7 +164,19 @@ kubectl apply -f gitops/argocd-bootstrap.yaml
 *(O ArgoCD detectará o repositório e começará a baixar os microsserviços automaticamente).*
 
 #### Passo 5: Inicializar as Ferramentas de Observabilidade
-Siga para a **ETAPA 1** e **ETAPA 2** abaixo para instalar a Stack de Observabilidade (Prometheus, Loki, Grafana, OTel Collector) no novo cluster.
+1. Crie o namespace de monitoramento e instale a stack do Prometheus, Grafana e Loki via Helm:
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+kubectl create namespace monitoring
+
+helm install prometheus prometheus-community/prometheus --namespace monitoring --set alertmanager.enabled=false --set server.persistentVolume.enabled=false
+helm install grafana grafana/grafana --namespace monitoring --set persistence.enabled=false --set service.type=LoadBalancer
+helm install loki grafana/loki-stack --namespace monitoring --set loki.persistence.enabled=false,promtail.enabled=true
+```
+2. O ArgoCD sincronizará automaticamente o OTel Collector e o receptor de autocura (webhook-receiver) definidos na pasta `gitops/monitoring` (devido à aplicação do bootstrap no Passo 4).
 
 ---
 
@@ -199,17 +211,23 @@ helm install grafana grafana/grafana \
 
 > [!TIP]
 > Obtenha a senha do usuário `admin` do Grafana rodando:
+>
+> **No Windows (PowerShell):**
+> ```powershell
+> [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}")))
+> ```
+>
+> **No Linux / macOS (Bash):**
 > ```bash
 > kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 > ```
 
 ### 1.3. Instalar o Grafana Loki para Coleta de Logs
 ```bash
-helm install loki grafana/loki \
+# Instalar Loki em conjunto com o Promtail para raspagem automática de logs
+helm install loki grafana/loki-stack \
   --namespace monitoring \
-  --set loki.auth_enabled=false \
-  --set loki.commonConfig.replication_factor=1 \
-  --set singleBinary.persistence.enabled=false
+  --set loki.persistence.enabled=false,promtail.enabled=true
 ```
 
 ---
