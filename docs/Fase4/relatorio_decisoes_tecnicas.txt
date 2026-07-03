@@ -96,4 +96,11 @@ o ecossistema em menos de 15 minutos:
 * Resiliência a Conflitos (Orphan Resources): O guia de inicialização inclui 
   scripts automáticos de limpeza via AWS CLI para remover bancos de dados e 
   grupos de subnets que eventualmente tenham ficado órfãos de sessões passadas.
+* Ajuste Dinâmico de Capacidade do EKS (Pod Limits): Como os nós padrão no AWS Academy 
+  estão restritos pela rede VPC a um máximo de 11 pods por nó, a inserção da stack 
+  completa de monitoramento (Prometheus, Loki, Grafana e OTel Collector) juntamente com 
+  as 5 réplicas de microsserviços causava estouro de capacidade (Too many pods). Decidiu-se 
+  tecnicamente escalar o grupo de nós do cluster para 4 instâncias ativas via AWS CLI/Terraform 
+  para garantir a execução paralela estável de todas as ferramentas de observabilidade 
+  e serviços de aplicação.
 ================================================================================

@@ -149,9 +149,9 @@ aws eks update-kubeconfig --name togglemaster-eks-homolog --region us-east-1
 *Teste a conexão rodando: `kubectl get nodes`*
 
 #### Passo 3: Instalar o ArgoCD no Novo Cluster
-Como o cluster é novo, o ArgoCD precisa ser reinstalado. Adicione o repositório Helm e execute a instalação:
+Como o cluster é novo, o ArgoCD precisa ser reinstalado. Adicione o repositório Helm correto e execute a instalação:
 ```bash
-helm repo add argo https://argoproj.github.io/argo-cd
+helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 helm install argocd argo/argo-cd --namespace argocd --create-namespace
 ```
@@ -177,6 +177,14 @@ helm install grafana grafana/grafana --namespace monitoring --set persistence.en
 helm install loki grafana/loki-stack --namespace monitoring --set loki.persistence.enabled=false,promtail.enabled=true
 ```
 2. O ArgoCD sincronizará automaticamente o OTel Collector e o receptor de autocura (webhook-receiver) definidos na pasta `gitops/monitoring` (devido à aplicação do bootstrap no Passo 4).
+
+### 0.8. Notas Importantes de Capacidade & Troubleshooting (EKS e ECR)
+*   **Capacidade de Pods (Too many pods):** Os nós do EKS no AWS Academy possuem limitação de rede que restringe a capacidade a **11 pods por nó**. Para evitar que os microsserviços fiquem travados em status `Pending`, o grupo de nós foi configurado para escalar até 4 nós. Se necessário escalar manualmente via CLI, rode:
+    ```bash
+    aws eks update-nodegroup-config --cluster-name togglemaster-eks-homolog --nodegroup-name togglemaster-eks-homolog-ng --scaling-config desiredSize=4,minSize=2,maxSize=4
+    ```
+*   **Imagens não encontradas (ImagePullBackOff no ECR):** Sempre que o laboratório é reiniciado, os repositórios do ECR sobem vazios. Certifique-se de realizar o commit e push dos códigos instrumentados para o GitHub, o que disparará os pipelines do GitHub Actions para compilar e publicar as imagens no ECR.
+*   **Sincronização do ArgoCD:** O ArgoCD lê as configurações diretamente do repositório remoto do GitHub. Alterações locais nos diretórios de GitOps (`gitops/monitoring` e `gitops/cluster`) só serão aplicadas no cluster após o envio (`git push`) para a branch remota correspondente (`Fase4`).
 
 ---
 
