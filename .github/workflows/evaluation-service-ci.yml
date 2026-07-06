@@ -2,11 +2,12 @@ name: Evaluation Service CI
 
 on:
   push:
-    branches: [main, Fase3]
+    branches: [main, Fase3, Fase4]
     paths:
       - "backend-services/evaluation-service/**"
       - ".github/workflows/evaluation-service-ci.yml"
       - ".github/workflows/service-ci-base.yml"
+  workflow_dispatch:
 
 jobs:
   evaluation_service_ci:

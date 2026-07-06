@@ -2,11 +2,12 @@ name: Auth Service CI
 
 on:
   push:
-    branches: [main, Fase3]
+    branches: [main, Fase3, Fase4]
     paths:
       - "backend-services/auth-service/**"
       - ".github/workflows/auth-service-ci.yml"
       - ".github/workflows/service-ci-base.yml"
+  workflow_dispatch:
 
 jobs:
   auth_service_ci:

@@ -2,11 +2,12 @@ name: Analytics Service CI
 
 on:
   push:
-    branches: [main, Fase3]
+    branches: [main, Fase3, Fase4]
     paths:
       - "backend-services/analytics-service/**"
       - ".github/workflows/analytics-service-ci.yml"
       - ".github/workflows/service-ci-base.yml"
+  workflow_dispatch:
 
 jobs:
   analytics_service_ci:

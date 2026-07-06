@@ -2,11 +2,12 @@ name: Flag Service CI
 
 on:
   push:
-    branches: [main, Fase3]
+    branches: [main, Fase3, Fase4]
     paths:
       - "backend-services/flag-service/**"
       - ".github/workflows/flag-service-ci.yml"
       - ".github/workflows/service-ci-base.yml"
+  workflow_dispatch:
 
 jobs:
   flag_service_ci:
