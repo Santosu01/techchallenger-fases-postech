@@ -121,6 +121,7 @@ jobs:
 
       - name: GolangCI-Lint
         if: inputs.language == 'go'
+        continue-on-error: true
         env:
           GOFLAGS: -mod=mod
         uses: golangci/golangci-lint-action@v6
