@@ -1,4 +1,4 @@
-setuptools
+setuptools<82.0.0
 Flask==3.0.3
 Werkzeug==3.0.3
 psycopg2-binary==2.9.9
