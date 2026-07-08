@@ -26,6 +26,6 @@ data:
   AWS_SQS_ENDPOINT_URL: ""
   AWS_DYNAMODB_ENDPOINT_URL: ""
   
-  AUTH_DATABASE_URL: "postgres://postgres:Togglemaster123@togglemaster-homolog-auth-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_auth?sslmode=require"
-  FLAG_DATABASE_URL: "postgres://postgres:Togglemaster123@togglemaster-homolog-flag-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_flag?sslmode=require"
-  TARGETING_DATABASE_URL: "postgres://postgres:Togglemaster123@togglemaster-homolog-targeting-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_targeting?sslmode=require"
+  AUTH_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-auth-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_auth?sslmode=require"
+  FLAG_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-flag-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_flag?sslmode=require"
+  TARGETING_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-targeting-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_targeting?sslmode=require"
