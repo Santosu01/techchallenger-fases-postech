@@ -40,7 +40,7 @@ data:
 
       # Exporter para New Relic via OTLP gRPC
       otlp/newrelic:
-        endpoint: "otlp.eu01.nr-data.net:4317"
+        endpoint: "otlp.nr-data.net:4317"
         headers:
           api-key: "${env:NEW_RELIC_API_KEY}"
 
