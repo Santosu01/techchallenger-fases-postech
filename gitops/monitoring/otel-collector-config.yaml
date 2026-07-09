@@ -38,9 +38,9 @@ data:
           key: "${env:DATADOG_API_KEY}"
           site: "datadoghq.com"
 
-      # Exporter para New Relic via OTLP gRPC
-      otlp/newrelic:
-        endpoint: "otlp.eu01.nr-data.net:4317"
+      # Exporter para New Relic via OTLP HTTP
+      otlphttp/newrelic:
+        endpoint: "https://otlp.nr-data.net"
         headers:
           api-key: "${env:NEW_RELIC_API_KEY}"
 
@@ -49,11 +49,11 @@ data:
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [prometheus, otlp/newrelic]
+          exporters: [prometheus, otlphttp/newrelic]
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/newrelic]
+          exporters: [otlphttp/newrelic]
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
