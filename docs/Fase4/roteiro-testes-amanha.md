@@ -1,71 +1,79 @@
-# Roteiro de Testes e Captura de Prints (Fase 4)
+# Checklist Final e Roteiro para Gravação de Vídeo (Fase 4)
 
-Este documento contém o roteiro passo a passo com links e comandos exatos para você realizar os testes e capturar os prints exigidos para a entrega da **Fase 4**.
-
----
-
-## 1. 📊 Print do Dashboard do Grafana
-O Grafana já está rodando e configurado com o Prometheus (métricas) e Loki (logs).
-1. Faça o redirecionamento de porta (se não estiver rodando):
-   ```bash
-   kubectl port-forward svc/grafana 3000:80 -n monitoring
-   ```
-2. Acesse a URL: [http://localhost:3000](http://localhost:3000)
-3. Credenciais de Acesso:
-   * **Usuário:** `admin`
-   * **Senha:** `w08CSK3gxXHFsbUsESNFhEY23r0JRQiJ32QMvJXX`
-4. No menu esquerdo, navegue em **Dashboards**, selecione o dashboard preconfigurado **"Pos-Tech"** ou explore o painel de logs consolidados do Loki.
-5. Capture o print da tela mostrando os gráficos preenchidos.
+Este documento contém apenas as ações que **faltam você executar** para tirar os prints necessários e gravar o vídeo de demonstração para a entrega do trabalho. Todas as configurações do cluster, banco de dados e envio de dados para o New Relic já foram concluídas com sucesso.
 
 ---
 
-## 2. 🌐 Print de um Trace Distribuído no APM (Datadog / New Relic)
-Para rastrear as chamadas e o Service Map, é necessário integrar com uma conta trial comercial de APM.
-1. Crie uma conta gratuita de avaliação no [New Relic](https://newrelic.com/signup) ou no [Datadog](https://www.datadoghq.com/).
-2. Obtenha sua chave de API e aplique no cluster EKS com o comando:
-   ```bash
-   kubectl create secret generic apm-secrets --namespace monitoring --from-literal=datadog-api-key="SUA_CHAVE_DATADOG" --from-literal=newrelic-api-key="SUA_CHAVE_NEW_RELIC" --dry-run=client -o yaml | kubectl apply -f -
-   ```
-3. Reinicie o coletor para aplicar a nova chave:
-   ```bash
-   kubectl rollout restart deployment/otel-collector -n monitoring
-   ```
-4. Gere tráfego de requisições de teste chamando a API do `evaluation-service`:
-   ```bash
-   kubectl run test-traffic -n togglemaster --image=curlimages/curl -i --rm --restart=Never -- http://evaluation-service:8004/evaluate
-   ```
-5. No painel do seu APM (New Relic ou Datadog), vá em **Distributed Tracing**, selecione a rota `/evaluate` e capture o print mostrando o trace completo cruzando os serviços (de `evaluation-service` chamando `flag-service`, `targeting-service` e `auth-service`).
+## 📅 Resumo Geral dos Acessos
+Guarde estas informações para acessar os consoles durante a gravação e testes:
+
+| Recurso | URL | Usuário | Senha / Chave |
+| :--- | :--- | :--- | :--- |
+| **🐙 ArgoCD** | [https://localhost:8080](https://localhost:8080) | `admin` | `uVSJnI36xJwQdi3u` |
+| **📊 Grafana** | [http://localhost:3000](http://localhost:3000) | `admin` | `w08CSK3gxXHFsbUsESNFhEY23r0JRQiJ32QMvJXX` |
+| **🌐 New Relic** | [https://one.newrelic.com](https://one.newrelic.com) | E-mail do grupo | Senha do grupo |
 
 ---
 
-## 3. 💬 Print da Notificação de Incidente no ChatOps (Discord / Slack)
-Você pode usar a notificação de teste nativa do Grafana para tirar o print imediato sem precisar simular uma queda longa de serviço.
-1. Crie um Webhook no Discord (Configurações do canal de texto > Integrações > Webhooks > Criar Webhook e copie a URL) ou no Slack.
-2. Acesse o Grafana Alerting: [http://localhost:3000/alerting/notifications](http://localhost:3000/alerting/notifications).
-3. Vá em **Contact points** > **Add contact point**.
-4. Configure como **Discord** (ou **Slack**), cole a URL do webhook e salve.
-5. Clique no botão **Test** no canto superior direito do contact point para disparar uma notificação imediata.
-6. Capture o print da mensagem recebida no canal do Discord ou Slack.
+## 🚀 Checklist de Tarefas para Entrega
+
+### [ ] Passo 1: Capturar os 4 Prints Obrigatórios
+
+#### 📥 Print 1: Dashboard do Grafana
+* **Ação:** Abra um terminal e inicie o redirecionamento:
+  ```bash
+  kubectl port-forward svc/grafana 3000:80 -n monitoring
+  ```
+* **Ação:** Acesse [http://localhost:3000](http://localhost:3000) no seu navegador, vá em **Dashboards** e abra o painel **"Pos-Tech"**.
+* **Como preencher o gráfico:** Rode o comando abaixo algumas vezes no terminal para gerar requisições e ver os gráficos subirem em tempo real:
+  ```bash
+  kubectl run test-traffic -n togglemaster --image=curlimages/curl -i --rm --restart=Never -- http://evaluation-service:8004/evaluate
+  ```
+* **Captura:** Tire um print da tela do Grafana mostrando as curvas de tráfego, recursos de CPU/RAM e os logs consolidados do Loki embaixo.
+
+#### 📥 Print 2: Trace Distribuído no APM (New Relic)
+* **Ação:** Acesse o console do [New Relic](https://one.newrelic.com).
+* **Ação:** No menu esquerdo, clique em **APM & Services** e depois clique no serviço **`evaluation-service`**.
+* **Ação:** No menu do serviço, clique em **Distributed Tracing** (ou **Traces** no menu lateral principal) e selecione a rota `/evaluate` na tabela.
+* **Captura:** Tire um print mostrando a árvore de spans da transação detalhada (mostrando o `evaluation-service` chamando o `flag-service`, `targeting-service` e o `auth-service` em cascata) e o **Service Map**.
+
+#### 📥 Print 3: Notificação de Incidente no ChatOps
+* **Ação:** No Grafana, vá em **Alerting** > **Contact points**.
+* **Ação:** Edite o Contact Point (Discord ou Slack), cole a URL do Webhook do canal de texto do seu grupo e salve.
+* **Ação:** Clique em **Test** (canto superior direito) > **Send test notification** para enviar um alerta falso imediato.
+* **Captura:** Tire um print da mensagem de teste rica que chegou no canal do seu Discord/Slack.
+
+#### 📥 Print 4: Log de Autocura (Self-Healing)
+* **Captura:** Copie ou tire print diretamente do log de sucesso gerado no terminal do receptor de autocura que simulamos:
+  ```text
+  2026-07-09 00:23:05,899 - INFO - Alerta recebido: {'status': 'firing', 'alerts': [{'status': 'firing', 'labels': {'alertname': 'EvaluationHighErrorRate'}}]}
+  2026-07-09 00:23:05,900 - INFO - 🚨 ALERTA DISPARADO (FIRING) recebido. Iniciando autocura do evaluation-service...
+  2026-07-09 00:23:05,931 - INFO - ✅ Self-healing executado com sucesso: rolling restart do evaluation-service disparado às 2026-07-09T00:23:05.916180+00:00
+  2026-07-09 00:23:05,932 - INFO - 127.0.0.1 - - [09/Jul/2026 00:23:05] "POST /alert HTTP/1.1" 200 -
+  ```
 
 ---
 
-## 4. 🛡️ Print do Log/Execução do Self-Healing
-O receptor de autocura (`webhook-receiver`) está ativo no namespace `monitoring`. Para capturar o print da execução da autocura:
-1. Dispense a necessidade de quebrar o banco de dados enviando uma chamada de teste que simula o alerta do Grafana disparando:
-   * **No Windows (PowerShell) - Certifique-se de que a porta 5000 esteja livre:**
-     * Primeiro redirecione a porta do webhook-receiver:
-       ```bash
-       kubectl port-forward svc/webhook-receiver -n monitoring 5000:5000
-       ```
-     * Em outro terminal, execute o POST de simulação:
-       ```powershell
-       Invoke-RestMethod -Uri "http://localhost:5000/alert" -Method Post -ContentType "application/json" -Body '{"status":"firing","alerts":[{"status":"firing","labels":{"alertname":"EvaluationHighErrorRate"}}]}'
-       ```
-2. Após receber a resposta de sucesso (`Self-healing triggered successfully`), consulte os logs do receptor rodando:
-   ```bash
-   kubectl logs -n monitoring -l app=webhook-receiver --tail=50
-   ```
-3. O log exibirá a execução do rolling restart no deployment `evaluation-service`:
-   * `🚨 ALERTA DISPARADO (FIRING) recebido. Iniciando autocura do evaluation-service...`
-   * `✅ Self-healing executado com sucesso: rolling restart do evaluation-service disparado...`
-4. Capture o print do terminal contendo esses logs de sucesso.
+### [ ] Passo 2: Gravar o Vídeo de Demonstração (Até 25 Minutos)
+Roteiro sugerido para a gravação da tela:
+
+1. **Abertura (1-2 min):**
+   * Apresente os membros do grupo e a proposta do trabalho da Fase 4.
+2. **Infraestrutura e GitOps no ArgoCD (3-5 min):**
+   * Mostre o painel do ArgoCD com todas as aplicações sincronizadas com o estado `Synced` e `Healthy`.
+   * Comente brevemente que a stack de observabilidade e as aplicações estão integradas via GitOps.
+3. **Métricas e Logs no Grafana + Loki (3-5 min):**
+   * Mostre o dashboard customizado **"Pos-Tech"** no Grafana.
+   * Faça uma chamada no terminal usando `curl` e mostre o gráfico de requisições subindo na hora, bem como os logs das aplicações consolidados pelo Loki.
+4. **Service Map e Tracing no New Relic (5-7 min):**
+   * Apresente o painel do New Relic APM.
+   * Mostre o **Service Map** montado automaticamente mostrando a comunicação entre os 5 microsserviços.
+   * Mostre o rastreamento detalhado (**Distributed Tracing**) de uma transação `/evaluate` mostrando as chamadas síncronas/assíncronas em cascata.
+5. **Autocura (Self-Healing) (5 min):**
+   * Demonstre o fluxo de autocura simulando o alerta do Grafana:
+     * Rode o redirecionamento de porta do `webhook-receiver` no terminal.
+     * Envie a chamada de simulação de alerta (`Invoke-RestMethod` no PowerShell).
+     * Exiba o pod do `evaluation-service` sofrendo o rolling update automático (`kubectl get pods -n togglemaster -w` para mostrar o pod antigo terminando e o novo subindo).
+     * Exiba os logs do `webhook-receiver` comprovando o sucesso da execução da autocura.
+6. **Encerramento (1 min):**
+   * Agradeça e conclua a apresentação.
