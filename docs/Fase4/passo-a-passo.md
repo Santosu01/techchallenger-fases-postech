@@ -156,6 +156,16 @@ helm repo update
 helm install argocd argo/argo-cd --namespace argocd --create-namespace
 ```
 
+**Obter a Senha Inicial do ArgoCD:**
+* **No Windows (PowerShell):**
+  ```powershell
+  [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}")))
+  ```
+* **No Linux / macOS (Bash):**
+  ```bash
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode; echo
+  ```
+
 #### Passo 4: Fazer o Bootstrap das Aplicações via GitOps
 Aplique o manifesto de bootstrap para que o ArgoCD recrie automaticamente as nossas aplicações e configurações no namespace `togglemaster`:
 ```bash

@@ -49,7 +49,19 @@ helm install argocd argo/argo-cd --namespace argocd --create-namespace
 ```
 *Aguarde 30 segundos até que os CRDs sejam registrados no Kubernetes.*
 
+**Obter a Senha Inicial do ArgoCD:**
+
+* **No Windows (PowerShell):**
+  ```powershell
+  [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}")))
+  ```
+* **No Linux / macOS (Bash):**
+  ```bash
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode; echo
+  ```
+
 ---
+
 
 ## Passo 6: Executar o Bootstrap do GitOps
 Sincronize todos os microsserviços e configurações do ecossistema a partir da branch `Fase4`:
