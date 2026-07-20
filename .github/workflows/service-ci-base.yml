@@ -338,4 +338,4 @@ jobs:
       - name: ECR push skipped message
         if: ${{ !(env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCOUNT_ID != '') }}
         run: echo "AWS secrets not configured yet. Image push skipped."
-# touch 2026-07-15: alteracao minima para disparar os 5 workflows que referenciam este arquivo nos paths (push em main/Fase4).
+# touch 2026-07-20: forçando o trigger das pipelines de build e push no ECR!
