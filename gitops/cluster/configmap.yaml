@@ -4,13 +4,13 @@ metadata:
   name: app-config
   namespace: togglemaster
 data:
-  AUTH_DB_HOST: "togglemaster-homolog-auth-db.clrqrtilufsf.us-east-1.rds.amazonaws.com"
-  FLAG_DB_HOST: "togglemaster-homolog-flag-db.clrqrtilufsf.us-east-1.rds.amazonaws.com"
-  TARGETING_DB_HOST: "togglemaster-homolog-targeting-db.clrqrtilufsf.us-east-1.rds.amazonaws.com"
+  AUTH_DB_HOST: "togglemaster-homolog-auth-db.cjpqdpwinwns.us-east-1.rds.amazonaws.com"
+  FLAG_DB_HOST: "togglemaster-homolog-flag-db.cjpqdpwinwns.us-east-1.rds.amazonaws.com"
+  TARGETING_DB_HOST: "togglemaster-homolog-targeting-db.cjpqdpwinwns.us-east-1.rds.amazonaws.com"
 
-  REDIS_HOST: "togglemaster-homolog-redis.ln1equ.0001.use1.cache.amazonaws.com:6379"
+  REDIS_HOST: "togglemaster-homolog-redis.1tg9o7.0001.use1.cache.amazonaws.com:6379"
   REDIS_TLS: "false"
-  REDIS_URL: "redis://togglemaster-homolog-redis.ln1equ.0001.use1.cache.amazonaws.com:6379"
+  REDIS_URL: "redis://togglemaster-homolog-redis.1tg9o7.0001.use1.cache.amazonaws.com:6379"
 
   AUTH_SERVICE_URL: "http://auth-service:8001"
   FLAG_SERVICE_URL: "http://flag-service:8002"
@@ -26,6 +26,6 @@ data:
   AWS_SQS_ENDPOINT_URL: ""
   AWS_DYNAMODB_ENDPOINT_URL: ""
   
-  AUTH_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-auth-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_auth?sslmode=require"
-  FLAG_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-flag-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_flag?sslmode=require"
-  TARGETING_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-targeting-db.clrqrtilufsf.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_targeting?sslmode=require"
+  AUTH_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-auth-db.cjpqdpwinwns.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_auth?sslmode=require"
+  FLAG_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-flag-db.cjpqdpwinwns.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_flag?sslmode=require"
+  TARGETING_DATABASE_URL: "postgres://postgres:Togglemaster%231234@togglemaster-homolog-targeting-db.cjpqdpwinwns.us-east-1.rds.amazonaws.com:5432/togglemaster_homolog_targeting?sslmode=require"
