@@ -76,4 +76,4 @@ Roteiro sugerido para a gravação da tela:
      * Exiba o pod do `evaluation-service` sofrendo o rolling update automático (`kubectl get pods -n togglemaster -w` para mostrar o pod antigo terminando e o novo subindo).
      * Exiba os logs do `webhook-receiver` comprovando o sucesso da execução da autocura.
 6. **Encerramento (1 min):**
-   * Agradeça e conclua a apresentação.
+   * Agradeça e conclua a apresentação. 
